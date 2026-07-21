@@ -138,7 +138,7 @@ Connected directly to the SSAS Cube. Four reports were built:
 4. **Drill-Through Report** – Right-click navigation to transaction-level details
 
 ![PowerBI screenshots](Documents/Visualizations/powerbi-1.png)
-![PowerBI screenshots](Documents/Visualizations/powerbi-1.png)
+![PowerBI screenshots](Documents/Visualizations/powerbi-2.png)
 
 ---
 

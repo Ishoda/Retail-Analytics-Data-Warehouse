@@ -1,442 +1,181 @@
 # Retail Analytics Data Warehouse & Business Intelligence Solution
 
-A complete Business Intelligence solution developed to transform retail transaction data into actionable insights using **Data Warehousing, SSIS ETL, SSAS OLAP Cube, and Power BI Analytics**.
+**End-to-end BI Solution** built with **Data Warehousing, SSIS ETL, SSAS OLAP Cube, and Power BI**.
+
+![Architecture Diagram](Documents/Visualizations/architecture-diagram.png)
 
 ---
 
-# Project Overview
+## Project Overview
 
-Organizations generate large volumes of data from different operational systems such as sales, customers, and products. However, analyzing this data becomes difficult when it is stored across multiple sources and formats.
+This project transforms raw retail transaction data from heterogeneous sources into actionable business insights. It demonstrates a complete **Data Warehousing and Business Intelligence pipeline** for a simulated Indian retail store.
 
-This project implements a complete **Retail Analytics Data Warehouse** solution by integrating heterogeneous data sources, performing ETL operations, designing a dimensional data warehouse, developing an OLAP cube, and creating interactive Power BI reports.
-
-The solution enables business users to analyze:
-
-- Sales performance
-- Profitability
-- Customer behaviour
-- Product performance
-- Store performance
-- Time-based sales trends
+**Key Outcomes:**
+- Integrated multiple data sources (SQL Server, CSV, Excel)
+- Built a **Star Schema Data Warehouse**
+- Developed robust **SSIS ETL** processes (including Slowly Changing Dimensions & Accumulating Facts)
+- Created a **multidimensional SSAS OLAP Cube**
+- Demonstrated classic **OLAP operations**
+- Built interactive **Power BI reports** with drill-down, drill-through, and cascading filters
 
 ---
 
-# Business Intelligence Workflow
+## Technologies Used
+
+| Technology              | Purpose                                      |
+|-------------------------|----------------------------------------------|
+| Microsoft SQL Server    | Source DB + Data Warehouse                   |
+| SSIS                    | ETL Development                              |
+| SSAS (Multidimensional) | OLAP Cube & Multidimensional Analysis        |
+| Power BI Desktop        | Interactive Dashboards & Reporting           |
+| Excel                   | OLAP Client (PivotTables)                    |
+| CSV + Excel Files       | Heterogeneous source systems                 |
+
+---
+
+## Dataset
+
+- **Name**: Indian Store Data
+- **Source**: [Kaggle](https://www.kaggle.com/datasets/abuhumzakhani/store-data)
+- **Size**: ~100,000 retail transactions
+- **Period**: 5 years (2019–2023)
+- **Structure**: OLTP-style, intentionally split across **SQL Server + CSV + Excel** to simulate real enterprise environments.
+
+**Source Systems:**
+- **SQL Server** (`DWBI_Assignment`): Main transactional data (`StgOrders`)
+- **CSV** (`customer.csv`): Customer details
+- **Excel** (`product.xlsx`): Product catalog
+
+---
+
+## Solution Architecture
 
 ```
-Source Systems
-      |
+Source Systems (SQL + CSV + Excel)
       ↓
 Staging Area
-      |
       ↓
 SSIS ETL Process
-      |
       ↓
-Data Warehouse (Star Schema)
-      |
+Data Warehouse
       ↓
 SSAS OLAP Cube
-      |
       ↓
 Power BI Reports
 ```
 
----
-
-# Technologies Used
-
-| Technology | Purpose |
-|------------|---------|
-| Microsoft SQL Server | Source database and Data Warehouse implementation |
-| SQL Server Integration Services (SSIS) | ETL development |
-| SQL Server Analysis Services (SSAS) | OLAP Cube development |
-| Power BI | Dashboard and reporting |
-| Excel | External data source |
-| CSV Files | External data source |
+Full documentation with screenshots:
+- [Assignment 01](Documents/Assignment_01.pdf) — Dataset, Architecture, Star Schema & SSIS ETL
+- [Assignment 02](Documents/Assignment_02.pdf) — SSAS Cube, OLAP Operations & Power BI
 
 ---
 
-# Dataset
+## Data Warehouse Design (Star Schema)
 
-## Dataset Information
+![Star Schema](Documents/Visualizations/star-schema.png)
 
-**Dataset Name:** Indian Store Data
+### Fact Table
+- **FactSales** — Central fact table with measures (`Sales`, `Quantity`, `Discount`, `Profit`) and accumulating snapshot fields (`accm_txn_create_time`, `accm_txn_complete_time`, `txn_process_time_hours`).
 
-**Source:**  
-https://www.kaggle.com/datasets/abuhumzakhan/store-data
+### Dimension Tables
+| Dimension     | Surrogate Key     | Business Key             | Key Attributes                     |
+|---------------|-------------------|--------------------------|------------------------------------|
+| DimCustomer   | CustomerSK        | AlternateCustomerID      | Name, Segment, DOB                 |
+| DimProduct    | ProductSK         | AlternateProductID       | Name, Category, Sub-Category       |
+| DimDate       | DateKey (YYYYMMDD)| —                        | Year, Month, Day                   |
 
-**Records:** Approximately 100,000 retail sales transactions
-
-**Data Period:** Multiple years of sales transactions
-
-The dataset represents a retail business scenario containing:
-
-- Customer information
-- Product information
-- Sales transactions
-- Product categories
-- Sales amount
-- Quantity
-- Discount
-- Profit
+**Design Highlights**:
+- Conformed `DimDate` (shared between Order & Ship Date)
+- Surrogate keys for performance
+- OrderID retained as natural key for accumulating fact updates
 
 ---
 
-# Source Systems
+## ETL Development (SSIS)
 
-The dataset was separated into multiple heterogeneous sources to simulate a real-world enterprise environment.
+Four modular SSIS packages were developed:
 
-## SQL Server Database
+| Package                    | Purpose |
+|---------------------------|--------|
+| `as_Load_Staging.dtsx`    | Extract from SQL, CSV, Excel → Staging tables |
+| `as_Load_DW.dtsx`         | Transform + Load Dimensions & Fact (Lookups, SCD Type 1, Surrogate Keys) |
+| `Update_FactSales.dtsx`   | Update accumulating fact attributes using natural key (`OrderID`) |
+| `DataProfiling.dtsx`      | Source data quality assessment |
 
-Contains transactional sales data:
-
-**Orders Table**
-
-Includes:
-
-- Order ID
-- Customer ID
-- Product ID
-- Order Date
-- Ship Date
-- Sales
-- Quantity
-- Discount
-- Profit
+**Key Transformations Used**:
+- Data Conversion, Lookup, Conditional Split, Derived Column, OLE DB Command
 
 ---
 
-## CSV Source
+## SSAS OLAP Cube
 
-### Customer Data
+- **Project**: DWBI Assignment DW (Multidimensional)
+- Measures: Sales, Quantity, Discount, Profit
+- Hierarchies: `Year → Month → Day` (DimDate), Customer hierarchy
+- Successfully deployed and processed
 
-File:
+---
+
+## OLAP Operations (Demonstrated in Excel PivotTable)
+
+| Operation   | Description | Example |
+|-------------|-----------|--------|
+| **Roll-up** | Aggregate to higher level | Month → Year |
+| **Drill-down** | Show lower granularity | Year → Month → Day |
+| **Slice**   | Single dimension filter | Segment = "Consumer" |
+| **Dice**    | Multiple dimension filter | Consumer + Electronics |
+| **Pivot**   | Reorient axes | Swap Segment ↔ Year |
+
+---
+
+## Power BI Reports
+
+Connected directly to the SSAS Cube. Four reports were built:
+
+1. **Matrix Visual** – Cross-tab analysis (Product Category × Customer Segment)
+2. **Slicers** – Cascading filters + multiple visuals (Column + Line charts, KPIs)
+3. **Drill-Down Report** – Hierarchical time analysis (Year → Month → Day)
+4. **Drill-Through Report** – Right-click navigation to transaction-level details
+
+![PowerBI screenshots](Documents/Visualizations/powerbi-1.png)
+![PowerBI screenshots](Documents/Visualizations/powerbi-1.png)
+
+---
+
+## Repository Structure
+
 
 ```
-customer.csv
+Retail-Analytics-Data-Warehouse
+│
+├── Documents
+│   ├── Assignment_01.pdf
+│   ├── Assignment_02.pdf
+│
+├── assets
+│   └── images
+│       └── retail-dw
+│           ├── architecture-diagram.png
+│           ├── star-schema.png
+│           ├── load-dw.png
+│           ├── powerbi-1.png
+│           └── powerbi-2.png
+│
+├── SSIS Packages
+├── SSAS Cube Project
+├── SQL Scripts
+│
+└── README.md
 ```
 
-Contains:
 
-- Customer ID
-- Customer Name
-- Last Name
-- Date of Birth
-- Segment
-
----
-
-## Excel Source
-
-### Product Data
-
-File:
-
-```
-product.xlsx
-```
-
-Contains:
-
-- Product ID
-- Product Name
-- Category
-- Sub Category
-
----
-
-# Data Warehouse Design
-
-## Star Schema Architecture
-
-The data warehouse was designed using a star schema model.
-
-![Star Schema](Documentation/star-schema.png)
-
----
-
-## Fact Table
-
-### FactSales
-
-Contains business measures:
-
-- Sales Amount
-- Quantity
-- Discount
-- Profit
-
----
-
-## Dimension Tables
-
-### DimCustomer
-
-Stores customer attributes:
-
-- Customer Name
-- Last Name
-- Segment
-
----
-
-### DimProduct
-
-Stores product information:
-
-- Product Name
-- Category
-- Sub Category
-
----
-
-### DimDate
-
-Stores time-related attributes:
-
-- Date
-- Year
-- Month
-- Day
-
----
-
-# ETL Development using SSIS
-
-Three main ETL packages were developed.
-
----
-
-## Package 1: as_Load_Staging.dtsx
-
-Purpose:
-
-Extract raw data from multiple sources and load into staging tables.
-
-Sources:
-
-- SQL Server
-- CSV files
-- Excel files
-
-Process:
-
-```
-Source
- ↓
-Data Conversion
- ↓
-OLE DB Destination
-```
-
-Staging tables:
-
-- StgCustomer
-- StgProduct
-- StgOrders
-
----
-
-## Package 2: as_Load_DW.dtsx
-
-Purpose:
-
-Transform staging data and load into warehouse tables.
-
-Transformations applied:
-
-- Data Conversion
-- Lookup Transformation
-- Conditional Split
-- Derived Column
-- Surrogate Key Generation
-
-Loaded tables:
-
-- DimCustomer
-- DimProduct
-- FactSales
-
----
-
-## Package 3: Update_FactSales.dtsx
-
-Purpose:
-
-Update accumulating fact table information.
-
-Implemented:
-
-- Transaction completion tracking
-- Processing time calculation
-
----
-
-# SSAS OLAP Cube
-
-A multidimensional OLAP cube was created using SQL Server Analysis Services.
-
-The cube contains:
-
-## Measures
-
-- Sales
-- Quantity
-- Discount
-- Profit
-
-
-## Dimensions
-
-- Customer
-- Product
-- Date
-
-
-## Hierarchies
-
-Example:
-
-```
-Year
- |
-Month
- |
-Day
-```
-
----
-
-# OLAP Operations Demonstrated
-
-The cube was tested using Excel PivotTable connected to SSAS.
-
-Implemented operations:
-
-## Roll-up
-
-Aggregates data to a higher level.
-
-Example:
-
-```
-Month → Year
-```
-
----
-
-## Drill-down
-
-Explores detailed information.
-
-Example:
-
-```
-Year → Month → Day
-```
-
----
-
-## Slice
-
-Filters data using a single dimension.
-
-Example:
-
-```
-Customer Segment = Consumer
-```
-
----
-
-## Dice
-
-Filters data using multiple conditions.
-
-Example:
-
-```
-Segment = Consumer
-+
-Category = Electronics
-```
-
----
-
-## Pivot
-
-Changes the perspective of data analysis.
-
----
-
-# Power BI Reports
-
-Power BI was connected with the SSAS cube to create interactive reports.
-
-Implemented reports:
-
----
-
-## Matrix Report
-
-Displays:
-
-- Product categories
-- Customer segments
-- Sales values
-
----
-
-## Interactive Slicer Report
-
-Includes:
-
-- Cascading filters
-- Multiple visuals
-- Sales charts
-
----
-
-## Drill-down Report
-
-Allows users to explore:
-
-```
-Year → Month → Day
-```
-
----
-
-## Drill-through Report
-
-Allows users to navigate from summary information to detailed analysis.
-
-Includes:
-
-- Product details
-- Sales information
-- Profit analysis
-
----
-
-# Project Outcomes
-
-✔ Designed a complete retail data warehouse using star schema architecture.
-
-✔ Integrated multiple heterogeneous data sources using SSIS.
-
-✔ Developed automated ETL workflows.
-
-✔ Created SSAS OLAP cube for multidimensional analysis.
-
-✔ Implemented OLAP operations including drill-down, roll-up, slice, dice, and pivot.
-
-✔ Developed Power BI reports for business intelligence and decision support.
-
-✔ Gained practical experience in data modelling, ETL, OLAP, and visualization.
-
----
+### Key Skills Demonstrated
+- Dimensional Modeling & Star Schema Design
+- Multi-source ETL with SSIS (heterogeneous sources)
+- Slowly Changing Dimensions & Accumulating Fact Tables
+- SSAS Multidimensional Cube Development
+- OLAP Operations
+- Advanced Power BI (Drill-down, Drill-through, Cascading Slicers)
 
 # Author
 

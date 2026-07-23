@@ -1,5 +1,14 @@
 # Retail Analytics Data Warehouse & Business Intelligence Solution
 
+![Microsoft SQL Server](https://img.shields.io/badge/Microsoft%20SQL%20Server-CC2927?logo=microsoft-sql-server&logoColor=white)
+![SSIS](https://img.shields.io/badge/SSIS-0052CC?logo=microsoft&logoColor=white)
+![SSAS](https://img.shields.io/badge/SSAS-0052CC?logo=microsoft&logoColor=white)
+![Power BI](https://img.shields.io/badge/Power%20BI-F2C811?logo=powerbi&logoColor=black)
+![Data Warehouse](https://img.shields.io/badge/Data%20Warehouse-0078D4?logo=dataiku&logoColor=white)
+![ETL](https://img.shields.io/badge/ETL-00A4EF?logo=azure-data-explorer&logoColor=white)
+![OLAP](https://img.shields.io/badge/OLAP-7B1FA2?logo=apache-cassandra&logoColor=white)
+
+
 **End-to-end BI Solution** built with **Data Warehousing, SSIS ETL, SSAS OLAP Cube, and Power BI**.
 
 ![Architecture Diagram](Documents/Visualizations/architecture-diagram.png)
